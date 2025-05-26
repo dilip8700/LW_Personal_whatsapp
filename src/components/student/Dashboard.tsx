@@ -1,160 +1,220 @@
 import React, { useState, useEffect } from 'react';
-import { getAnnouncementsForGroups } from '../../firebase/announcements';
-import { getUserGroups } from '../../firebase/groups';
-import { getAllUsers } from '../../firebase/users';
+import {
+  Settings,
+  Users,
+  Clock,
+  Layers,
+  Search,
+  UserCheck,
+  UserX,
+  Plus,
+  Edit3,
+  Trash2,
+  MoreVertical,
+  MessageSquare,
+  Send,
+} from 'lucide-react';
+import { getAnnouncementsForGroups, getGroupAnnouncements } from '../../firebase/announcements';
+import { getUserGroups, getAllGroups } from '../../firebase/groups';
+import { getAllUsers, getPendingUsers } from '../../firebase/users';
 import { Announcement, Group, User } from '../../types';
-import { useAuth } from '../../context/AuthContext';
-import Card from '../ui/Card';
-import Badge from '../ui/Badge';
-import Alert from '../ui/Alert';
-import { format } from 'date-fns';
 
-const StudentDashboard: React.FC = () => {
-  const { currentUser } = useAuth();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+const WhatsAppAdminDashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'groups' | 'users' | 'pending'>('groups');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!currentUser) return;
-      
       setLoading(true);
       try {
-        // Get all groups the student belongs to
-        const fetchedGroups = await getUserGroups(currentUser.id);
-        setGroups(fetchedGroups);
-        
-        // Get all users (for displaying names in announcements)
-        const fetchedUsers = await getAllUsers();
+        const [fetchedUsers, fetchedPendingUsers, fetchedGroups] = await Promise.all([
+          getAllUsers(),
+          getPendingUsers(),
+          getAllGroups(),
+        ]);
         setUsers(fetchedUsers);
-        
-        // Get announcements for all groups
-        const groupIds = fetchedGroups.map(group => group.id);
-        if (groupIds.length > 0) {
-          const fetchedAnnouncements = await getAnnouncementsForGroups(groupIds);
-          setAnnouncements(fetchedAnnouncements);
-        }
-      } catch (err) {
-        setError('Failed to fetch dashboard data');
-        console.error(err);
+        setPendingUsers(fetchedPendingUsers);
+        setGroups(fetchedGroups);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [currentUser]);
+  }, []);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      if (selectedGroup) {
+        const groupAnnouncements = await getGroupAnnouncements(selectedGroup.id);
+        setAnnouncements(groupAnnouncements);
+      }
+    };
+    fetchAnnouncements();
+  }, [selectedGroup]);
+
+  // Replace 'STUDENT' with the correct enum or constant value, e.g., UserRole.STUDENT
+    const studentCount = users.filter(user => user.role === 'STUDENT' as any && user.status === 'approved').length;
+
+  const formatTime = (date: Date | string) => {
+    const today = new Date();
+    const messageDate = new Date(date);
+    if (messageDate.toDateString() === today.toDateString()) {
+      return messageDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } else {
+      return messageDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (newMessage.trim() && selectedGroup) {
+      const newAnnouncement: Announcement = {
+        id: Date.now().toString(),
+        groupId: selectedGroup.id,
+        message: newMessage,
+        postedBy: 'admin',
+        timestamp: new Date(),
+      };
+      setAnnouncements([...announcements, newAnnouncement]);
+      setNewMessage('');
+    }
+  };
+
+  const filteredItems = () => {
+    switch (activeTab) {
+      case 'groups':
+        return groups.filter(group =>
+          group.groupName?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      case 'users':
+        return users.filter(user =>
+          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) && user.status === 'approved'
+        );
+      case 'pending':
+        return pendingUsers.filter(user =>
+          user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      default:
+        return [];
+    }
+  };
 
   if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded mb-4"></div>
-        <div className="h-16 bg-gray-200 rounded mb-2"></div>
-        <div className="h-16 bg-gray-200 rounded mb-2"></div>
-      </div>
-    );
+    return <div className="p-4 text-center">Loading...</div>;
   }
-
-  if (error) {
-    return (
-      <Alert
-        variant="error"
-        title="Error"
-        message={error}
-      />
-    );
-  }
-
-  // Group announcements by group
-  const groupedAnnouncements: Record<string, Announcement[]> = {};
-  
-  announcements.forEach(announcement => {
-    if (!groupedAnnouncements[announcement.groupId]) {
-      groupedAnnouncements[announcement.groupId] = [];
-    }
-    groupedAnnouncements[announcement.groupId].push(announcement);
-  });
 
   return (
-    <div className="space-y-8">
-      <Card title="Your Groups">
-        {groups.length === 0 ? (
-          <p className="text-gray-500 py-4">
-            You haven't been added to any groups yet.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups.map(group => (
-              <a
-                key={group.id}
-                href={`/groups/${group.id}`}
-                className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors duration-200"
-              >
-                <h3 className="font-medium text-gray-900">{group.groupName}</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {group.memberIds.length} members
-                </p>
-                <p className="text-sm text-primary-600 mt-2">
-                  {groupedAnnouncements[group.id]?.length || 0} announcements
-                </p>
-              </a>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      <Card title="Recent Announcements">
-        {announcements.length === 0 ? (
-          <p className="text-gray-500 py-4">
-            No announcements available.
-          </p>
-        ) : (
-          <ul className="divide-y divide-gray-200">
-            {announcements.slice(0, 5).map(announcement => {
-              const postedBy = users.find(user => user.id === announcement.postedBy);
-              const group = groups.find(group => group.id === announcement.groupId);
-              
-              return (
-                <li key={announcement.id} className="py-4 animate-slide-up">
-                  <div className="flex flex-wrap justify-between mb-1">
-                    <span className="font-medium">{postedBy?.name || 'Unknown'}</span>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="primary">{group?.groupName}</Badge>
-                      <Badge variant="gray">
-                        {format(announcement.timestamp, 'MMM d, yyyy')}
-                      </Badge>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 whitespace-pre-line">{announcement.message}</p>
-                  <div className="mt-2 text-right">
-                    <a 
-                      href={`/groups/${announcement.groupId}`} 
-                      className="text-sm text-primary-600 hover:text-primary-700"
-                    >
-                      View Group
-                    </a>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {announcements.length > 5 && (
-          <div className="mt-4 text-center">
-            <a 
-              href="/groups" 
-              className="text-primary-600 hover:text-primary-700 font-medium"
+    <div className="flex h-screen">
+      {/* Sidebar and group/user list */}
+      <div className="w-1/3 bg-white border-r overflow-y-auto">
+        <div className="p-4 font-semibold text-lg border-b">Admin Dashboard</div>
+        <div className="flex justify-around border-b py-2">
+          {['groups', 'users', 'pending'].map((tab) => (
+            <button
+              key={tab}
+              className={`px-3 py-1 rounded ${activeTab === tab ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              onClick={() => setActiveTab(tab as 'groups' | 'users' | 'pending')}
             >
-              View All Announcements
-            </a>
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="p-2">
+          <input
+            type="text"
+            className="w-full border px-3 py-1 rounded"
+            placeholder={`Search ${activeTab}`}
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div>
+          {filteredItems().map(item => (
+            <div
+              key={item.id}
+              onClick={() => {
+                if (activeTab === 'groups') {
+                  setSelectedGroup(item as Group);
+                }
+              }}
+              className={`p-3 cursor-pointer hover:bg-gray-100 ${selectedGroup?.id === item.id ? 'bg-green-100' : ''}`}
+            >
+              {activeTab === 'groups'
+                ? 'groupName' in item
+                  ? item.groupName
+                  : ''
+                : 'name' in item
+                  ? item.name
+                  : ''}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col">
+        {selectedGroup ? (
+          <>
+            <div className="p-4 border-b flex justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">{selectedGroup.groupName}</h2>
+                <p className="text-sm text-gray-600">{selectedGroup.memberIds.length} members</p>
+              </div>
+              <div className="flex gap-2">
+                <button><Edit3 size={18} /></button>
+                <button><Trash2 size={18} /></button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {announcements.map(announcement => (
+                <div key={announcement.id} className="bg-white p-3 rounded shadow">
+                  <div className="text-sm font-semibold">Admin</div>
+                  <div className="text-xs text-gray-500">{formatTime(announcement.timestamp)}</div>
+                  <p className="mt-1 text-gray-800">{announcement.message}</p>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 border-t flex gap-2">
+              <input
+                type="text"
+                className="flex-1 border px-3 py-2 rounded"
+                placeholder="Type a message..."
+                value={newMessage}
+                onChange={e => setNewMessage(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            Select a group to view announcements
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 };
 
-export default StudentDashboard;
+export default WhatsAppAdminDashboard;

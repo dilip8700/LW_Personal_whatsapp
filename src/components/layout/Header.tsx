@@ -20,32 +20,37 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-red-800 shadow">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-primary-600">EduConnect</h1>
-            </div>
+                <img
+                  src="page/assets/LW-log.png"  // <-- update with your actual logo path
+                  alt="Logo"
+                  className="h-10 w-4 w-auto"
+                />
+              </div>
+
             {currentUser && (
               <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {currentUser.role === UserRole.ADMIN ? (
                   <>
                     <a
                       href="/admin/dashboard"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                      className="border-transparent text-white hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-white"
                     >
                       Dashboard
                     </a>
                     <a
                       href="/admin/users"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                      className="border-transparent text-white hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-white"
                     >
                       Users
                     </a>
                     <a
                       href="/admin/groups"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                      className="border-transparent text-white hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-white"
                     >
                       Groups
                     </a>
@@ -54,13 +59,13 @@ const Header: React.FC = () => {
                   <>
                     <a
                       href="/dashboard"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                      className="border-transparent text-white hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-white"
                     >
                       Dashboard
                     </a>
                     <a
                       href="/profile"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                      className="border-transparent text-white hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium text-white"
                     >
                       Profile
                     </a>
@@ -69,12 +74,12 @@ const Header: React.FC = () => {
               </nav>
             )}
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center text-white">
             {currentUser ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-white">
                   {currentUser.name}
-                  <span className="ml-2 text-xs text-gray-500">
+                  <span className="ml-2 text-xs text-white">
                     ({currentUser.role})
                   </span>
                 </span>
@@ -88,7 +93,7 @@ const Header: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 text-white">
                 <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
                   Login
                 </Button>
@@ -101,7 +106,7 @@ const Header: React.FC = () => {
           <div className="-mr-2 flex items-center sm:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <span className="sr-only">Open main menu</span>
@@ -131,13 +136,13 @@ const Header: React.FC = () => {
                     </a>
                     <a
                       href="/admin/users"
-                      className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+                      className="border-transparent text-white hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
                     >
                       Users
                     </a>
                     <a
                       href="/admin/groups"
-                      className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+                      className="border-transparent text-white hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
                     >
                       Groups
                     </a>
@@ -152,7 +157,7 @@ const Header: React.FC = () => {
                     </a>
                     <a
                       href="/profile"
-                      className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+                      className="border-transparent text-white hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
                     >
                       Profile
                     </a>
@@ -173,14 +178,14 @@ const Header: React.FC = () => {
                     </div>
                   </div>
                   <div className="ml-3">
-                    <div className="text-base font-medium text-gray-800">{currentUser.name}</div>
-                    <div className="text-sm font-medium text-gray-500">{currentUser.email}</div>
+                    <div className="text-base font-medium text-white">{currentUser.name}</div>
+                    <div className="text-sm font-medium text-white">{currentUser.email}</div>
                   </div>
                 </div>
                 <div className="mt-3 space-y-1">
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:text-gray-800 hover:bg-gray-100"
                   >
                     Logout
                   </button>
@@ -190,13 +195,13 @@ const Header: React.FC = () => {
               <div className="space-y-1 px-4">
                 <button
                   onClick={() => navigate('/login')}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:text-gray-800 hover:bg-gray-100"
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate('/register')}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:text-gray-800 hover:bg-gray-100"
                 >
                   Register
                 </button>
